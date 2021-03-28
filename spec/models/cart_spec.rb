@@ -31,14 +31,14 @@ describe Cart do
   end
 
   describe 'when an item becomes unavailable' do
-    it 'release returns false' do
+    it 'release returns the items removed' do
       user = create :user
       course = create :course, quantity: 2
       item = create :item, cart: user.cart, cartable: course
       create :enrollment, course: course
       create :enrollment, course: course
   
-      expect(user.cart.release).to eq false
+      expect(user.cart.release).to include course
     end
 
     it 'removes the item' do
@@ -53,13 +53,55 @@ describe Cart do
   
       expect(user.cart.items).to_not include course
     end
+  end
 
-    it 'notifies the user'
+  describe 'availablity' do
+    it 'is checked when adding items' do
+      user = create :user
+      course = create :course, quantity: 2
+
+      expect(user.cart).to receive(:release)
+      user.cart.add course
+    end
+
+    it 'is checked when entering checkout mode' do
+      user = create :user
+      course = create :course, quantity: 2
+
+      expect(user.cart).to receive(:release)
+      user.cart.lock
+    end
+
+    it 'is checked when leaving checkout mode' do
+      user = create :user
+      course = create :course, quantity: 2
+
+      expect(user.cart).to receive(:release)
+      user.cart.unlock
+    end
   end
 
   describe 'when entering checkout' do
-    it 'reserves the items'
-    it 'releases items if the user leaves checkout'
+    it 'reserves the items' do
+      user = create :user
+      course = create :course, quantity: 1
+      user.cart.add course
+
+      user.cart.lock
+
+      expect(course.reserved).to eq 1
+    end
+
+    it 'releases items if the user leaves checkout' do
+      user = create :user
+      course = create :course, quantity: 1
+      user.cart.add course
+
+      user.cart.unlock
+
+      expect(course.reserved).to eq 0
+    end
+
     it 'releases items after a while'
   end
 

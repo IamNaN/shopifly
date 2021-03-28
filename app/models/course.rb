@@ -1,7 +1,7 @@
 class Course < ApplicationRecord
+  include Cartable
+
   has_many :enrollments, counter_cache: true, dependent: :destroy
-  has_many :items, as: :cartable, dependent: :destroy
-  has_many :carts, through: :items
 
   def available
     quantity - enrollments.count
